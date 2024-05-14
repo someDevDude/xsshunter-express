@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const mustache = require("mustache");
 const fs = require("fs");
-const fetch = require('node-fetch');
+const https = require('https');
 
 const XSS_PAYLOAD_FIRE_EMAIL_TEMPLATE = fs.readFileSync(
   "./templates/xss_email_template.htm",
@@ -9,30 +9,37 @@ const XSS_PAYLOAD_FIRE_EMAIL_TEMPLATE = fs.readFileSync(
 );
 
 function sendDiscordWebhook(xss_payload_fire_data) {
-  if (!process.env.DISCORD_WEBHOOK_URL) {
+	if (!process.env.DISCORD_WEBHOOK_URL) {
     return;
   }
-	console.log(process.env.DISCORD_WEBHOOK_URL)
-  fetch(process.env.DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      content: `New XSS vulnerability found on ${xss_payload_fire_data.url}, UUID: ${xss_payload_fire_data.id}`,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to send message to Discord webhook");
-      }
+  try {
+    const data = JSON.stringify({ content: `New XSS vulnerability found on ${xss_payload_fire_data.url}, UUID: ${xss_payload_fire_data.id}` });
 
-      console.log("Message sent successfully to Discord webhook");
-    })
-    .catch((error) => {
-      console.error("Error:", error);
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length,
+      },
+    };
+
+    const req = https.request(process.env.DISCORD_WEBHOOK_URL, options, (res) => {
+      console.log(`Status code: ${res.statusCode}`);
+      res.on('data', (d) => {
+        process.stdout.write(d);
+      });
     });
-}
+
+    req.on('error', (error) => {
+      console.error('Error:', error);
+    });
+
+    req.write(data);
+    req.end();
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
 
 async function send_email_notification(xss_payload_fire_data) {
   const transporter = nodemailer.createTransport({
