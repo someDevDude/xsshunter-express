@@ -270,7 +270,9 @@ async function get_app_server() {
         await notification.send_email_notification(payload_fire_data);
       }
       if (process.env.DISCORD_WEBHOOK_URL) {
-        await notification.sendDiscordWebhook(payload_fire_data);
+        await notification.sendDiscordWebhook(payload_fire_data).then().catch(err => {
+					console.log(err)
+				});
       }
     }
   );
