@@ -8,26 +8,29 @@ const XSS_PAYLOAD_FIRE_EMAIL_TEMPLATE = fs.readFileSync(
 );
 
 function sendDiscordWebhook(xss_payload_fire_data) {
-  if (!process.env.DISCORD_WEBHOOK_URL)
-    fetch(process.env.DISCORD_WEBHOOK_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: `New XSS vulnerability found on ${xss_payload_fire_data.url}, UUID: ${xss_payload_fire_data.id}`,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to send message to Discord webhook");
-        }
+  if (!process.env.DISCORD_WEBHOOK_URL) {
+    return;
+  }
+	console.log(process.env.DISCORD_WEBHOOK_URL)
+  fetch(process.env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      content: `New XSS vulnerability found on ${xss_payload_fire_data.url}, UUID: ${xss_payload_fire_data.id}`,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to send message to Discord webhook");
+      }
 
-        console.log("Message sent successfully to Discord webhook");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+      console.log("Message sent successfully to Discord webhook");
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
 
 async function send_email_notification(xss_payload_fire_data) {
