@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const mustache = require("mustache");
 const fs = require("fs");
+const fetch = require('node-fetch');
 
 const XSS_PAYLOAD_FIRE_EMAIL_TEMPLATE = fs.readFileSync(
   "./templates/xss_email_template.htm",
